@@ -5,3 +5,12 @@
 * Stworzenie bazy danych sqlite3
 ##### Todo
 * początkowe połączenie się z bazą danych
+
+#### 28.04.2020
+##### Changelog
+* Aktualizacja bazydanych
+* Łączenie się bazy z projektem
+* Początkowe dynamiczne menu kategorii
+##### Todo
+* Layout quizu
+* Ekran logowania
