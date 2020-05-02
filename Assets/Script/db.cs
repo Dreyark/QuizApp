@@ -10,6 +10,7 @@ using UnityEngine.UI;
 public class db : MonoBehaviour
 {
     public CategoryList categoryList;
+    public Quiz quiz;
     private string conn, sqlQuery;
     IDbConnection dbconn;
     IDbCommand dbcmd;
@@ -36,6 +37,7 @@ public class db : MonoBehaviour
     {
         using (dbconn = new SqliteConnection(conn))
         {
+            Debug.Log(conn);
             int len = 0;
             List<string> lista = new List<string>();
             string NazwaKategorii;
@@ -54,6 +56,43 @@ public class db : MonoBehaviour
 
             }
             categoryList.CreateList(len, lista);
+            reader.Close();
+            reader = null;
+            dbcmd.Dispose();
+            dbcmd = null;
+            dbconn.Close();
+
+
+        }
+
+    }
+
+    public void Search_function(string category)
+    {
+        using (dbconn = new SqliteConnection(conn))
+        {
+            string Pytanie, OdpA, OdpB, OdpC, OdpD;
+            int pop;
+            dbconn.Open(); //Open connection to the database.
+            IDbCommand dbcmd = dbconn.CreateCommand();
+            string sqlQuery = "SELECT Pytanie, OdpowiedzA, OdpowiedzB, OdpowiedzC, OdpowiedzD, Poprawna  FROM Kategorie INNER JOIN Pytania on Kategorie.Id = Pytania.IdKategorii where Kategorie.NazwaKategorii = " +"'"+ category+"'";// table name
+            dbcmd.CommandText = sqlQuery;
+            IDataReader reader = dbcmd.ExecuteReader();
+            while (reader.Read())
+            {
+                //  string id = reader.GetString(0);
+                Pytanie = reader.GetString(0);
+                OdpA = reader.GetString(1);
+                OdpB = reader.GetString(2);
+                OdpC = reader.GetString(3);
+                OdpD = reader.GetString(4);
+                pop = reader.GetInt16(5);
+
+                //Debug.Log(Pytanie + OdpA + OdpB + OdpC + OdpD);
+                //Debug.Log("ŚĆ");
+                //quiz.SetQuiz(OdpA);
+                quiz.SetQuiz(OdpA, OdpB, OdpC, OdpD, Pytanie, pop);
+            }
             reader.Close();
             reader = null;
             dbcmd.Dispose();
