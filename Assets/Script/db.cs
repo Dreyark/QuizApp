@@ -6,9 +6,11 @@ using System.Data;
 using System;
 using System.IO;
 using UnityEngine.UI;
+using UnityEditor;
 
 public class db : MonoBehaviour
 {
+    public GameObject Login, Password, menu, LogInScreen;
     public CategoryList categoryList;
     public Quiz quiz;
     private string conn, sqlQuery;
@@ -18,6 +20,7 @@ public class db : MonoBehaviour
     string DatabaseName = "QuizAppDB.s3db";
     void Start()
     {
+
         string[] filePaths = Directory.GetFiles(Application.persistentDataPath + "/");
         string filepath = Application.persistentDataPath + "/" + DatabaseName;
         if (!File.Exists(filepath))
@@ -33,11 +36,28 @@ public class db : MonoBehaviour
         CategorySearch();
     }
 
+    [Obsolete]
+    public void LoggingIn()
+    {
+        string nazwa = Login.GetComponent<Text>().text;
+        string haslo = Password.GetComponent<Text>().text;
+        string uzytkownik = SignIn(nazwa, haslo);
+        if(uzytkownik != "")
+        {
+            menu.GetComponent<menu>().LoggedIn(uzytkownik);
+            LogInScreen.SetActive(false);
+        }
+        else
+        {
+            Debug.Log("Zly login/haslo");
+        }
+    }
+
     private void CategorySearch()
     {
         using (dbconn = new SqliteConnection(conn))
         {
-            Debug.Log(conn);
+            //Debug.Log(conn);
             int len = 0;
             List<string> lista = new List<string>();
             string NazwaKategorii;
@@ -51,7 +71,7 @@ public class db : MonoBehaviour
                 len++;
                 NazwaKategorii = reader.GetString(0);
 
-                Debug.Log(" Kategoria =" + NazwaKategorii);
+                //Debug.Log(" Kategoria =" + NazwaKategorii);
                 lista.Add(NazwaKategorii);
 
             }
@@ -75,7 +95,7 @@ public class db : MonoBehaviour
             int pop;
             dbconn.Open(); //Open connection to the database.
             IDbCommand dbcmd = dbconn.CreateCommand();
-            string sqlQuery = "SELECT Pytanie, OdpowiedzA, OdpowiedzB, OdpowiedzC, OdpowiedzD, Poprawna  FROM Kategorie INNER JOIN Pytania on Kategorie.Id = Pytania.IdKategorii where Kategorie.NazwaKategorii = " +"'"+ category+"'";// table name
+            string sqlQuery = "SELECT Pytanie, OdpowiedzA, OdpowiedzB, OdpowiedzC, OdpowiedzD, Poprawna  FROM Kategorie INNER JOIN Pytania on Kategorie.Id = Pytania.IdKategorii where Kategorie.NazwaKategorii = " + "'" + category + "'";// table name
             dbcmd.CommandText = sqlQuery;
             IDataReader reader = dbcmd.ExecuteReader();
             while (reader.Read())
@@ -103,4 +123,29 @@ public class db : MonoBehaviour
         }
 
     }
+
+    private string SignIn(string User, string Password)
+    {
+        string Nazwa = "";
+        using (dbconn = new SqliteConnection(conn))
+        {
+            dbconn.Open();
+            IDbCommand dbcmd = dbconn.CreateCommand();
+            string sqlQuery = "SELECT Nazwa " + "FROM Uzytkownicy WHERE Nazwa = '"+User+"' AND Haslo = '"+Password+"'";
+            dbcmd.CommandText = sqlQuery;
+            IDataReader reader = dbcmd.ExecuteReader();
+            while (reader.Read())
+            {
+                Nazwa = reader.GetString(0);
+            }
+            reader.Close();
+            reader = null;
+            dbcmd.Dispose();
+            dbcmd = null;
+            dbconn.Close();
+
+        }
+        return Nazwa;
+    }
+
 }

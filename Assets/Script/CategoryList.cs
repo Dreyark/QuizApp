@@ -6,7 +6,6 @@ using UnityEngine.UI;
 
 public class CategoryList : MonoBehaviour
 {
-    //public db db;
     public GameObject buttonTemplate;
     public void CreateList(int len, List<string> name)
     {

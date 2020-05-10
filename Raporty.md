@@ -14,3 +14,11 @@
 ##### Todo
 * Layout quizu
 * Ekran logowania
+
+#### 10.05.2020
+##### Changelog
+* Ekran logowania
+* Layout quizu
+##### Todo
+* Layout wyników
+* Dodawanie własnych pytań

@@ -1,13 +1,15 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class menu : MonoBehaviour
 {
     public GameObject playButton, modifyButton, exitButton, CategoryMenu;
-
-    private void Start()
+    string Uzytkownik;
+    public void LoggedIn(string user)
     {
+        Uzytkownik = user;
         playButton.SetActive(true);
         modifyButton.SetActive(true);
         exitButton.SetActive(true);
