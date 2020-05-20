@@ -15,6 +15,6 @@ public class ButtonList : MonoBehaviour
 
     public void OnClick()
     {
-        db.Search_function(myText.text);
+        db.CategoryList(myText.text);
     }
 }

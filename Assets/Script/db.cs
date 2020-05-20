@@ -27,9 +27,20 @@ public class db : MonoBehaviour
         {
             Debug.LogWarning("File \"" + filepath + "\" does not exist. Attempting to create from \"" +
                              Application.dataPath + "!/assets/QuizAppDB");
+
+            // UNITY_ANDROID
+            WWW loadDB = new WWW("jar:file://" + Application.dataPath + "!/assets/QuizAppDB.s3db");
+            while (!loadDB.isDone) { }
+            // then save to Application.persistentDataPath
+            File.WriteAllBytes(filepath, loadDB.bytes);
+
+
+
+
         }
 
         conn = "URI=file:" + filepath;
+
     }
     public void PlayButton()
     {
@@ -75,6 +86,7 @@ public class db : MonoBehaviour
                 lista.Add(NazwaKategorii);
 
             }
+            categoryList.removeList();
             categoryList.CreateList(len, lista);
             reader.Close();
             reader = null;
@@ -87,7 +99,7 @@ public class db : MonoBehaviour
 
     }
 
-    public void Search_function(string category)
+    public void CategoryList(string category)
     {
         using (dbconn = new SqliteConnection(conn))
         {
@@ -108,10 +120,8 @@ public class db : MonoBehaviour
                 OdpD = reader.GetString(4);
                 pop = reader.GetInt16(5);
 
-                //Debug.Log(Pytanie + OdpA + OdpB + OdpC + OdpD);
-                //Debug.Log("ŚĆ");
-                //quiz.SetQuiz(OdpA);
                 quiz.SetQuiz(OdpA, OdpB, OdpC, OdpD, Pytanie, pop);
+                quiz.kategoria = category;
             }
             reader.Close();
             reader = null;
@@ -146,6 +156,53 @@ public class db : MonoBehaviour
 
         }
         return Nazwa;
+    }
+
+    public void Scoreboard(string category)
+    {
+        using (dbconn = new SqliteConnection(conn))
+        {
+            quiz.Scoreboard = " Punkty    Gracz   \n";
+            int len = 1;
+            string gracz;
+            int punkty;
+            dbconn.Open();
+            IDbCommand dbcmd = dbconn.CreateCommand();
+            string sqlQuery = "Select Uzytkownicy.Nazwa, Wyniki.Punkty from Wyniki inner join Uzytkownicy on Uzytkownicy.id = Wyniki.IdKonta inner join Kategorie on Kategorie.Id = Wyniki.IdKategorii where Kategorie.NazwaKategorii= '" + category + "' order by Punkty desc;";
+            dbcmd.CommandText = sqlQuery;
+            IDataReader reader = dbcmd.ExecuteReader();
+            while (reader.Read())
+            {
+                if (len == 10)
+                {
+                    break;
+                }
+                len++;
+                gracz = reader.GetString(0);
+                punkty = reader.GetInt16(1);
+                quiz.Scoreboard += punkty.ToString() + "\t \t \t" + gracz + "\n";
+            }
+            reader.Close();
+            reader = null;
+            dbcmd.Dispose();
+            dbcmd = null;
+            dbconn.Close();
+        }
+
+    }
+
+    public void UpdateScoreboard(string category, string userName, string punkty)
+    {
+        using (dbconn = new SqliteConnection(conn))
+        {
+            dbconn.Open();
+            IDbCommand dbcmd = dbconn.CreateCommand();
+            string sqlQuery = "INSERT INTO Wyniki(IdKategorii, IdKonta, Punkty) SELECT Kategorie.Id, Uzytkownicy.id, "+punkty+" from Uzytkownicy, Kategorie where Kategorie.NazwaKategorii = '"+category+"' and Uzytkownicy.Nazwa = '"+userName+"'";
+            dbcmd.CommandText = sqlQuery;
+            dbcmd.ExecuteScalar();
+            dbconn.Close();
+        }
+
     }
 
 }

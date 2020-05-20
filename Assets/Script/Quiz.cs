@@ -3,14 +3,26 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.SocialPlatforms.Impl;
 using UnityEngine.UI;
 
 public class Quiz : MonoBehaviour
 {
     int points = 0;
     int index = 0;
-    public GameObject Button1, Button2, Button3, Button4, Pytanie;
+    float currentTime = 0f;
+    float startTime = 30f;
+    public GameObject Button1, Button2, Button3, Button4, Pytanie, image, Podpowiedz;
+    public menu menu;
+    public db baza;
+    public Text countdownText;
+    public string kategoria;
+    public string Scoreboard;
+    public Text scoreboardText;
+    bool isActive = false;
+    bool isHintUsed = false;
 
     List<string> OdpA = new List<string>();
     List<string> OdpB = new List<string>();
@@ -20,15 +32,40 @@ public class Quiz : MonoBehaviour
     List<int> Pop = new List<int>();
     List<int> numbers = new List<int>();
 
-    private void Start()
+
+    public void Start()
     {
+        Podpowiedz.SetActive(true);
+        Button1.GetComponent<Button>().onClick.RemoveAllListeners();
+        Button2.GetComponent<Button>().onClick.RemoveAllListeners();
+        Button3.GetComponent<Button>().onClick.RemoveAllListeners();
+        Button4.GetComponent<Button>().onClick.RemoveAllListeners();
         Button1.GetComponent<Button>().onClick.AddListener(() => QuizLogic(1));
         Button2.GetComponent<Button>().onClick.AddListener(() => QuizLogic(2));
         Button3.GetComponent<Button>().onClick.AddListener(() => QuizLogic(3));
         Button4.GetComponent<Button>().onClick.AddListener(() => QuizLogic(4));
+        points = 0;
+        index = 0;
+        scoreboardText.text = "0";
         drawQuestions();
         SetButtons(index);
+        currentTime = startTime;
+        isActive = true;
+        print("TESTweew");
     }
+
+    private void Update()
+    {
+        currentTime -= 1 * Time.deltaTime;
+        countdownText.text = currentTime.ToString("0");
+        if(isActive)
+        if (currentTime <= 0f)
+        {
+            currentTime = 0f;
+            QuizLogic(0);
+        }
+    }
+
     public void SetQuiz(string odpA, string odpB, string odpC, string odpD, string pyt, int poprawne)
     {
         OdpA.Add(odpA);
@@ -72,14 +109,54 @@ public class Quiz : MonoBehaviour
         Pytanie.GetComponent<Text>().text = Pyt[numbers[i]];
     }
 
+    public void QuizHint()
+    {
+        bool randomValue = true;
+        int value = 0;
+        while (randomValue) {
+            value = UnityEngine.Random.Range(1, 4);
+            if (value != Pop[index])
+            {
+                break;
+            }
+        }
+        Button1.SetActive(false);
+        Button2.SetActive(false);
+        Button3.SetActive(false);
+        Button4.SetActive(false);
+        Transform panelTransform = GameObject.Find("Buttons").transform;
+        int j = 1;
+        foreach (Transform child in panelTransform)
+        {
+            Debug.Log(value);
+            if(j == value || j == Pop[index])
+            {
+                child.gameObject.SetActive(true);
+            }
+            j++;
+        }
+        isHintUsed = true;
+
+    }
+
 
     private void QuizLogic(int value)
     {
-        if(Pop[numbers[index]] == value)
+        if (isHintUsed)
         {
+            Button1.SetActive(true);
+            Button2.SetActive(true);
+            Button3.SetActive(true);
+            Button4.SetActive(true);
+        }
+        currentTime = startTime;
+        Debug.Log(index);
+        if (Pop[numbers[index]] == value)
+        {
+            Debug.Log("TESTOWY");
             points++;
         }
-        if(Pop.Count()>= (index+2))
+        if (Pop.Count() > ((index)+1))
         {
             index++;
             SetButtons(index);
@@ -92,6 +169,21 @@ public class Quiz : MonoBehaviour
 
     private void ResultScreen()
     {
-        throw new NotImplementedException();
+        baza.UpdateScoreboard(kategoria, menu.Uzytkownik, points.ToString());
+        Start();
+        points = 0;
+        index = 0;
+        isActive = false;
+        currentTime = 30f;
+        OdpA.Clear();
+        OdpB.Clear();
+        OdpC.Clear();
+        OdpD.Clear();
+        Pyt.Clear();
+        Pop.Clear();
+        baza.Scoreboard(kategoria);
+        scoreboardText.text = Scoreboard;
+        Scoreboard = "";
+        menu.ScoreboardButton();
     }
 }

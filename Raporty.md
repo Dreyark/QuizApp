@@ -22,3 +22,12 @@
 ##### Todo
 * Layout wyników
 * Dodawanie własnych pytań
+
+#### 20.05.2020
+##### Changelog
+* Tablica wyników
+* Koło pomocnicze
+* Czas odpowiedzi na pytanie
+* Streaming Assets
+##### Todo
+* Dodawanie własnych pytań
