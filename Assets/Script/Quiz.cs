@@ -14,7 +14,7 @@ public class Quiz : MonoBehaviour
     int index = 0;
     float currentTime = 0f;
     float startTime = 30f;
-    public GameObject Button1, Button2, Button3, Button4, Pytanie, image, Podpowiedz;
+    public GameObject Button1, Button2, Button3, Button4, Pytanie, image, Podpowiedz, scoreboardButton;
     public menu menu;
     public db baza;
     public Text countdownText;
@@ -31,6 +31,7 @@ public class Quiz : MonoBehaviour
     List<string> Pyt = new List<string>();
     List<int> Pop = new List<int>();
     List<int> numbers = new List<int>();
+    List<string> imageSrc = new List<string>();
 
 
     public void Start()
@@ -46,12 +47,10 @@ public class Quiz : MonoBehaviour
         Button4.GetComponent<Button>().onClick.AddListener(() => QuizLogic(4));
         points = 0;
         index = 0;
-        scoreboardText.text = "0";
         drawQuestions();
         SetButtons(index);
         currentTime = startTime;
         isActive = true;
-        print("TESTweew");
     }
 
     private void Update()
@@ -66,7 +65,7 @@ public class Quiz : MonoBehaviour
         }
     }
 
-    public void SetQuiz(string odpA, string odpB, string odpC, string odpD, string pyt, int poprawne)
+    public void SetQuiz(string odpA, string odpB, string odpC, string odpD, string pyt, int poprawne, string img)
     {
         OdpA.Add(odpA);
         OdpB.Add(odpB);
@@ -74,6 +73,7 @@ public class Quiz : MonoBehaviour
         OdpD.Add(odpD);
         Pyt.Add(pyt);
         Pop.Add(poprawne);
+        imageSrc.Add(img);
     }
 
     private void drawQuestions()
@@ -107,6 +107,19 @@ public class Quiz : MonoBehaviour
         Button3.GetComponent<Button>().GetComponentInChildren<Text>().text = OdpC[numbers[i]];
         Button4.GetComponent<Button>().GetComponentInChildren<Text>().text = OdpD[numbers[i]];
         Pytanie.GetComponent<Text>().text = Pyt[numbers[i]];
+        if (imageSrc[numbers[i]] == "NULL")
+        {
+            image.GetComponent<Image>().sprite = null;
+            Pytanie.GetComponent<RectTransform>().localPosition = new Vector3(0, 550, 0);
+            image.SetActive(false);
+        }   
+        else
+        {
+            image.SetActive(true);
+            image.GetComponent<RectTransform>().localPosition = new Vector3(0, 200, 0);
+            Pytanie.GetComponent<RectTransform>().localPosition = new Vector3(0, 600, 0);
+            image.GetComponent<Image>().sprite = Resources.Load<Sprite>(imageSrc[numbers[i]]);
+        }
     }
 
     public void QuizHint()
@@ -115,7 +128,7 @@ public class Quiz : MonoBehaviour
         int value = 0;
         while (randomValue) {
             value = UnityEngine.Random.Range(1, 4);
-            if (value != Pop[index])
+            if (value != Pop[numbers[index]])
             {
                 break;
             }
@@ -128,8 +141,7 @@ public class Quiz : MonoBehaviour
         int j = 1;
         foreach (Transform child in panelTransform)
         {
-            Debug.Log(value);
-            if(j == value || j == Pop[index])
+            if(j == value || j == Pop[numbers[index]])
             {
                 child.gameObject.SetActive(true);
             }
@@ -150,13 +162,11 @@ public class Quiz : MonoBehaviour
             Button4.SetActive(true);
         }
         currentTime = startTime;
-        Debug.Log(index);
         if (Pop[numbers[index]] == value)
         {
-            Debug.Log("TESTOWY");
             points++;
         }
-        if (Pop.Count() > ((index)+1))
+        if (numbers.Count() > ((index)+1))
         {
             index++;
             SetButtons(index);
@@ -169,7 +179,9 @@ public class Quiz : MonoBehaviour
 
     private void ResultScreen()
     {
+        scoreboardButton.SetActive(true);
         baza.UpdateScoreboard(kategoria, menu.Uzytkownik, points.ToString());
+        scoreboardText.text = "Twój wynik to " + points.ToString()+ " pkt";
         Start();
         points = 0;
         index = 0;
@@ -181,9 +193,16 @@ public class Quiz : MonoBehaviour
         OdpD.Clear();
         Pyt.Clear();
         Pop.Clear();
+        imageSrc.Clear();
         baza.Scoreboard(kategoria);
-        scoreboardText.text = Scoreboard;
-        Scoreboard = "";
         menu.ScoreboardButton();
+    }
+    public void ScoreboardView()
+    {
+        scoreboardText.text = Scoreboard;
+    }
+    public void RestartScoreBoard()
+    {
+        Scoreboard = "";
     }
 }

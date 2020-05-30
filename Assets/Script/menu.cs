@@ -6,8 +6,16 @@ using UnityEngine.SocialPlatforms.Impl;
 
 public class menu : MonoBehaviour
 {
-    public GameObject playButton, modifyButton, exitButton, CategoryMenu, scoreboard, quiz;
+    public GameObject playButton, modifyButton, exitButton, CategoryMenu, scoreboard, quiz, LoginButton, LoginScreen, Register, RegButton;
     public string Uzytkownik;
+
+    public void Start()
+    {
+        LoginButton.SetActive(true);
+        LoginScreen.SetActive(true);
+        Register.SetActive(false);
+        RegButton.SetActive(true);
+    }
 
     public void Menu()
     {

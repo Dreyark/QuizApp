@@ -7,10 +7,12 @@ using System;
 using System.IO;
 using UnityEngine.UI;
 using UnityEditor;
+using System.Text;
 
 public class db : MonoBehaviour
 {
-    public GameObject Login, Password, menu, LogInScreen;
+    public GameObject Login, Password, menu, LogInScreen, wiadomosc;
+    public menu men;
     public CategoryList categoryList;
     public Quiz quiz;
     private string conn, sqlQuery;
@@ -53,14 +55,15 @@ public class db : MonoBehaviour
         string nazwa = Login.GetComponent<Text>().text;
         string haslo = Password.GetComponent<Text>().text;
         string uzytkownik = SignIn(nazwa, haslo);
-        if(uzytkownik != "")
+        if (uzytkownik != "")
         {
             menu.GetComponent<menu>().LoggedIn(uzytkownik);
             LogInScreen.SetActive(false);
         }
         else
         {
-            Debug.Log("Zly login/haslo");
+            wiadomosc.SetActive(true);
+            wiadomosc.GetComponent<Text>().text = "Zła nazwa użytkownika lub hasło";
         }
     }
 
@@ -103,11 +106,12 @@ public class db : MonoBehaviour
     {
         using (dbconn = new SqliteConnection(conn))
         {
-            string Pytanie, OdpA, OdpB, OdpC, OdpD;
+            string Pytanie, OdpA, OdpB, OdpC, OdpD, URL;
             int pop;
             dbconn.Open(); //Open connection to the database.
             IDbCommand dbcmd = dbconn.CreateCommand();
-            string sqlQuery = "SELECT Pytanie, OdpowiedzA, OdpowiedzB, OdpowiedzC, OdpowiedzD, Poprawna  FROM Kategorie INNER JOIN Pytania on Kategorie.Id = Pytania.IdKategorii where Kategorie.NazwaKategorii = " + "'" + category + "'";// table name
+            //string sqlQuery = "SELECT Pytanie, OdpowiedzA, OdpowiedzB, OdpowiedzC, OdpowiedzD, Poprawna, ObrazekPytania.URL FROM Kategorie INNER JOIN Pytania on Kategorie.Id = Pytania.IdKategorii left join ObrazekPytania on ObrazekPytania.IdPytania = Pytania.Id where Kategorie.NazwaKategorii = '" + category + "'";// table name
+            string sqlQuery = "SELECT Pytanie, OdpowiedzA, OdpowiedzB, OdpowiedzC, OdpowiedzD, Poprawna, IFNULL(ObrazekPytania.URL,'NULL')  FROM Kategorie INNER JOIN Pytania on Kategorie.Id = Pytania.IdKategorii LEFT JOIN ObrazekPytania on Pytania.Id = ObrazekPytania.IdPytania where Kategorie.NazwaKategorii = " + "'" + category + "'";// table name
             dbcmd.CommandText = sqlQuery;
             IDataReader reader = dbcmd.ExecuteReader();
             while (reader.Read())
@@ -119,8 +123,8 @@ public class db : MonoBehaviour
                 OdpC = reader.GetString(3);
                 OdpD = reader.GetString(4);
                 pop = reader.GetInt16(5);
-
-                quiz.SetQuiz(OdpA, OdpB, OdpC, OdpD, Pytanie, pop);
+                URL = reader.GetString(6);
+                quiz.SetQuiz(OdpA, OdpB, OdpC, OdpD, Pytanie, pop, URL);
                 quiz.kategoria = category;
             }
             reader.Close();
@@ -141,7 +145,7 @@ public class db : MonoBehaviour
         {
             dbconn.Open();
             IDbCommand dbcmd = dbconn.CreateCommand();
-            string sqlQuery = "SELECT Nazwa " + "FROM Uzytkownicy WHERE Nazwa = '"+User+"' AND Haslo = '"+Password+"'";
+            string sqlQuery = "SELECT Nazwa " + "FROM Uzytkownicy WHERE Nazwa = '" + User + "' AND Haslo = '" + Password + "'";
             dbcmd.CommandText = sqlQuery;
             IDataReader reader = dbcmd.ExecuteReader();
             while (reader.Read())
@@ -162,7 +166,7 @@ public class db : MonoBehaviour
     {
         using (dbconn = new SqliteConnection(conn))
         {
-            quiz.Scoreboard = " Punkty    Gracz   \n";
+            quiz.Scoreboard = " Punkty    Gracz   \n \n";
             int len = 1;
             string gracz;
             int punkty;
@@ -180,7 +184,8 @@ public class db : MonoBehaviour
                 len++;
                 gracz = reader.GetString(0);
                 punkty = reader.GetInt16(1);
-                quiz.Scoreboard += punkty.ToString() + "\t \t \t" + gracz + "\n";
+                quiz.Scoreboard += string.Format(("\t {0,3} \t \t \t {1,-16}" + Environment.NewLine), punkty.ToString(), gracz);
+                //quiz.Scoreboard += punkty.ToString() + "\t \t \t" + gracz + "\n";
             }
             reader.Close();
             reader = null;
@@ -197,7 +202,7 @@ public class db : MonoBehaviour
         {
             dbconn.Open();
             IDbCommand dbcmd = dbconn.CreateCommand();
-            string sqlQuery = "INSERT INTO Wyniki(IdKategorii, IdKonta, Punkty) SELECT Kategorie.Id, Uzytkownicy.id, "+punkty+" from Uzytkownicy, Kategorie where Kategorie.NazwaKategorii = '"+category+"' and Uzytkownicy.Nazwa = '"+userName+"'";
+            string sqlQuery = "INSERT INTO Wyniki(IdKategorii, IdKonta, Punkty) SELECT Kategorie.Id, Uzytkownicy.id, " + punkty + " from Uzytkownicy, Kategorie where Kategorie.NazwaKategorii = '" + category + "' and Uzytkownicy.Nazwa = '" + userName + "'";
             dbcmd.CommandText = sqlQuery;
             dbcmd.ExecuteScalar();
             dbconn.Close();
@@ -205,4 +210,40 @@ public class db : MonoBehaviour
 
     }
 
+    public void Register()
+    {
+        wiadomosc.SetActive(true);
+        string nazwa = Login.GetComponent<Text>().text;
+        string haslo = Password.GetComponent<Text>().text;
+        if (nazwa.Contains(" ") || haslo.Contains(" "))
+        {
+            wiadomosc.GetComponent<Text>().text = "Nazwa i hasło nie mogą zawierać spacji";
+            wiadomosc.SetActive(true);
+        }
+        else
+        {
+            using (dbconn = new SqliteConnection(conn))
+            {
+                dbconn.Open();
+                IDbCommand dbcmd = dbconn.CreateCommand();
+                try
+                {
+                    string sqlQuery = "INSERT INTO Uzytkownicy(Nazwa, Haslo) VALUES('" + nazwa + "','" + haslo + "');";
+
+                    dbcmd.CommandText = sqlQuery;
+                    dbcmd.ExecuteScalar();
+                    dbconn.Close();
+                    men.Start();
+                    wiadomosc.SetActive(false);
+                }
+                catch (SqliteException ex)
+                {
+                    Debug.Log(ex.Data.Keys);
+                    wiadomosc.GetComponent<Text>().text = "Podana nazwa użytkownika jest już zajęta";
+                    wiadomosc.SetActive(true);
+                }
+            }
+        }
+
+    }
 }
