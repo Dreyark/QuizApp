@@ -6,7 +6,8 @@ using UnityEngine.SocialPlatforms.Impl;
 
 public class menu : MonoBehaviour
 {
-    public GameObject playButton, modifyButton, exitButton, CategoryMenu, scoreboard, quiz, LoginButton, LoginScreen, Register, RegButton;
+    public GameObject playButton, AddQuestionButton, AddCategoryButton, exitButton, CategoryMenu, scoreboard, quiz, LoginButton, LoginScreen, Register, RegButton;
+    public GameObject AddQuestionLayout, AddCategoryLayout;
     public string Uzytkownik;
 
     public void Start()
@@ -15,16 +16,21 @@ public class menu : MonoBehaviour
         LoginScreen.SetActive(true);
         Register.SetActive(false);
         RegButton.SetActive(true);
+        AddQuestionLayout.SetActive(false);
+        AddCategoryLayout.SetActive(false);
     }
 
     public void Menu()
     {
         playButton.SetActive(true);
-        modifyButton.SetActive(true);
+        AddQuestionButton.SetActive(true);
+        AddCategoryButton.SetActive(true);
         exitButton.SetActive(true);
         CategoryMenu.SetActive(false);
         quiz.SetActive(false);
         scoreboard.SetActive(false);
+        AddQuestionLayout.SetActive(false);
+        AddCategoryLayout.SetActive(false);
     }
     public void LoggedIn(string user)
     {
@@ -35,15 +41,19 @@ public class menu : MonoBehaviour
     {
         CategoryMenu.SetActive(true);
         playButton.SetActive(false);
-        modifyButton.SetActive(false);
+        AddQuestionButton.SetActive(false);
+        AddCategoryButton.SetActive(false);
         exitButton.SetActive(false);
         quiz.SetActive(false);
+        AddQuestionLayout.SetActive(false);
+        AddCategoryLayout.SetActive(false);
     }
 
-   public void ModifyButton()
+    public void ModifyButton()
     {
         playButton.SetActive(false);
-        modifyButton.SetActive(false);
+        AddQuestionButton.SetActive(false);
+        AddCategoryButton.SetActive(false);
         exitButton.SetActive(false);
         quiz.SetActive(false);
     }
@@ -51,15 +61,20 @@ public class menu : MonoBehaviour
     public void ScoreboardButton()
     {
         playButton.SetActive(false);
-        modifyButton.SetActive(false);
+        AddQuestionButton.SetActive(false);
+        AddCategoryButton.SetActive(false);
         exitButton.SetActive(false);
         CategoryMenu.SetActive(false);
         quiz.SetActive(false);
         scoreboard.SetActive(true);
+        AddQuestionLayout.SetActive(false);
+        AddCategoryLayout.SetActive(false);
     }
 
     public void ExitButton()
     {
         Application.Quit();
     }
+
+
 }

@@ -8,6 +8,7 @@ using System.IO;
 using UnityEngine.UI;
 using UnityEditor;
 using System.Text;
+using System.Collections.Specialized;
 
 public class db : MonoBehaviour
 {
@@ -15,6 +16,7 @@ public class db : MonoBehaviour
     public menu men;
     public CategoryList categoryList;
     public Quiz quiz;
+    public List<string> lista = new List<string>();
     private string conn, sqlQuery;
     IDbConnection dbconn;
     IDbCommand dbcmd;
@@ -73,8 +75,8 @@ public class db : MonoBehaviour
         {
             //Debug.Log(conn);
             int len = 0;
-            List<string> lista = new List<string>();
             string NazwaKategorii;
+            lista = new List<string>();
             dbconn.Open(); //Open connection to the database.
             IDbCommand dbcmd = dbconn.CreateCommand();
             string sqlQuery = "SELECT NazwaKategorii " + "FROM Kategorie";
@@ -89,7 +91,7 @@ public class db : MonoBehaviour
                 lista.Add(NazwaKategorii);
 
             }
-            categoryList.removeList();
+            //categoryList.removeList();
             categoryList.CreateList(len, lista);
             reader.Close();
             reader = null;
@@ -203,6 +205,34 @@ public class db : MonoBehaviour
             dbconn.Open();
             IDbCommand dbcmd = dbconn.CreateCommand();
             string sqlQuery = "INSERT INTO Wyniki(IdKategorii, IdKonta, Punkty) SELECT Kategorie.Id, Uzytkownicy.id, " + punkty + " from Uzytkownicy, Kategorie where Kategorie.NazwaKategorii = '" + category + "' and Uzytkownicy.Nazwa = '" + userName + "'";
+            dbcmd.CommandText = sqlQuery;
+            dbcmd.ExecuteScalar();
+            dbconn.Close();
+        }
+
+    }
+
+    public void AddCategory(string category)
+    {
+        using (dbconn = new SqliteConnection(conn))
+        {
+            dbconn.Open();
+            IDbCommand dbcmd = dbconn.CreateCommand();
+            string sqlQuery = "Insert into Kategorie (NazwaKategorii) Values('"+category+"')";
+            dbcmd.CommandText = sqlQuery;
+            dbcmd.ExecuteScalar();
+            dbconn.Close();
+        }
+
+    }
+
+    public void AddQuestion(string A, string B, string C, string D, string Pyt, int pop, int cat)
+    {
+        using (dbconn = new SqliteConnection(conn))
+        {
+            dbconn.Open();
+            IDbCommand dbcmd = dbconn.CreateCommand();
+            string sqlQuery = "INSERT INTO Pytania (Pytanie, OdpowiedzA, OdpowiedzB, OdpowiedzC, OdpowiedzD, Poprawna, IdKategorii) VALUES('"+Pyt+"', '"+A+"', '"+B+"', '"+C+"', '"+D+"', "+pop+", "+cat+"); ";
             dbcmd.CommandText = sqlQuery;
             dbcmd.ExecuteScalar();
             dbconn.Close();

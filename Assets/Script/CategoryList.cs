@@ -10,7 +10,12 @@ public class CategoryList : MonoBehaviour
     int lastLen = 0;
     public void CreateList(int len, List<string> name)
     {
+        try { removeList(); 
+        }
+        catch
+        {
 
+        }
         for (int i = 1; i <= len; i++)
         {
             lastLen = len;
