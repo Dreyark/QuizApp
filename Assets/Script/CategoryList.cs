@@ -22,8 +22,6 @@ public class CategoryList : MonoBehaviour
             GameObject button = Instantiate(buttonTemplate) as GameObject;
             button.SetActive(true);
             button.GetComponent<ButtonList>().setText(name[i-1]);
-            //button.GetComponent<Button>().onClick.AddListener(() => OnButtonClick(button.GetComponent<Button>()));
-            //button.GetComponent<ButtonList>().OnClick(name[i - 1]);
             button.transform.SetParent(buttonTemplate.transform.parent, false);
         }
 
@@ -31,12 +29,6 @@ public class CategoryList : MonoBehaviour
 
     public void removeList()
     {
-        //Button[] buttons = 
-        //for (int i = 1; i <= lastLen; i++)
-        //{
-        //    Button buttons = GetComponentInChildren<Button>();
-        //    Destroy(buttons);
-        //}
         Transform panelTransform = GameObject.Find("ButtonListContent").transform;
         int i = 0;
         foreach (Transform child in panelTransform)
@@ -48,11 +40,4 @@ public class CategoryList : MonoBehaviour
             i += 1;
         }
     }
-
-    //public void OnButtonClick(string category)
-    //{
-    //    Debug.Log(category);
-    //    //db.Search_function(category);
-    //}
-
 }

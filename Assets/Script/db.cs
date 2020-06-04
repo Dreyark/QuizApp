@@ -12,7 +12,8 @@ using System.Collections.Specialized;
 
 public class db : MonoBehaviour
 {
-    public GameObject Login, Password, menu, LogInScreen, wiadomosc;
+    public GameObject menu, LogInScreen, wiadomosc;
+    public InputField Login, Password;
     public menu men;
     public CategoryList categoryList;
     public Quiz quiz;
@@ -54,18 +55,26 @@ public class db : MonoBehaviour
     [Obsolete]
     public void LoggingIn()
     {
-        string nazwa = Login.GetComponent<Text>().text;
-        string haslo = Password.GetComponent<Text>().text;
+        string nazwa = Login.GetComponent<InputField>().text;
+        string haslo = Password.GetComponent<InputField>().text;
+
         string uzytkownik = SignIn(nazwa, haslo);
         if (uzytkownik != "")
         {
             menu.GetComponent<menu>().LoggedIn(uzytkownik);
             LogInScreen.SetActive(false);
         }
+        else if (nazwa.Contains(" ") || haslo.Contains(" ") || haslo.Contains(Char.ConvertFromUtf32(34)))
+        {
+
+            wiadomosc.GetComponent<Text>().text = "Nazwa i hasło nie mogą zawierać spacji i znakow jak ' " + Char.ConvertFromUtf32(34);
+            wiadomosc.SetActive(true);
+
+        }
         else
         {
-            wiadomosc.SetActive(true);
             wiadomosc.GetComponent<Text>().text = "Zła nazwa użytkownika lub hasło";
+            wiadomosc.SetActive(true);
         }
     }
 
@@ -73,7 +82,6 @@ public class db : MonoBehaviour
     {
         using (dbconn = new SqliteConnection(conn))
         {
-            //Debug.Log(conn);
             int len = 0;
             string NazwaKategorii;
             lista = new List<string>();
@@ -87,7 +95,6 @@ public class db : MonoBehaviour
                 len++;
                 NazwaKategorii = reader.GetString(0);
 
-                //Debug.Log(" Kategoria =" + NazwaKategorii);
                 lista.Add(NazwaKategorii);
 
             }
@@ -147,7 +154,7 @@ public class db : MonoBehaviour
         {
             dbconn.Open();
             IDbCommand dbcmd = dbconn.CreateCommand();
-            string sqlQuery = "SELECT Nazwa " + "FROM Uzytkownicy WHERE Nazwa = '" + User + "' AND Haslo = '" + Password + "'";
+            string sqlQuery = "SELECT Nazwa FROM Uzytkownicy WHERE Nazwa = '" + User + "' AND Haslo = '" + Password + "'";
             dbcmd.CommandText = sqlQuery;
             IDataReader reader = dbcmd.ExecuteReader();
             while (reader.Read())
@@ -218,7 +225,7 @@ public class db : MonoBehaviour
         {
             dbconn.Open();
             IDbCommand dbcmd = dbconn.CreateCommand();
-            string sqlQuery = "Insert into Kategorie (NazwaKategorii) Values('"+category+"')";
+            string sqlQuery = "Insert into Kategorie (NazwaKategorii) Values('" + category + "')";
             dbcmd.CommandText = sqlQuery;
             dbcmd.ExecuteScalar();
             dbconn.Close();
@@ -232,7 +239,7 @@ public class db : MonoBehaviour
         {
             dbconn.Open();
             IDbCommand dbcmd = dbconn.CreateCommand();
-            string sqlQuery = "INSERT INTO Pytania (Pytanie, OdpowiedzA, OdpowiedzB, OdpowiedzC, OdpowiedzD, Poprawna, IdKategorii) VALUES('"+Pyt+"', '"+A+"', '"+B+"', '"+C+"', '"+D+"', "+pop+", "+cat+"); ";
+            string sqlQuery = "INSERT INTO Pytania (Pytanie, OdpowiedzA, OdpowiedzB, OdpowiedzC, OdpowiedzD, Poprawna, IdKategorii) VALUES('" + Pyt + "', '" + A + "', '" + B + "', '" + C + "', '" + D + "', " + pop + ", " + cat + "); ";
             dbcmd.CommandText = sqlQuery;
             dbcmd.ExecuteScalar();
             dbconn.Close();
@@ -243,11 +250,11 @@ public class db : MonoBehaviour
     public void Register()
     {
         wiadomosc.SetActive(true);
-        string nazwa = Login.GetComponent<Text>().text;
-        string haslo = Password.GetComponent<Text>().text;
-        if (nazwa.Contains(" ") || haslo.Contains(" "))
+        string nazwa = Login.text;
+        string haslo = Password.text;
+        if (nazwa.Contains(" ") || haslo.Contains(" ") || haslo.Contains(Char.ConvertFromUtf32(34)))
         {
-            wiadomosc.GetComponent<Text>().text = "Nazwa i hasło nie mogą zawierać spacji";
+            wiadomosc.GetComponent<Text>().text = "Nazwa i hasło nie mogą zawierać spacji i znakow jak ' " + Char.ConvertFromUtf32(34);
             wiadomosc.SetActive(true);
         }
         else
@@ -268,7 +275,6 @@ public class db : MonoBehaviour
                 }
                 catch (SqliteException ex)
                 {
-                    Debug.Log(ex.Data.Keys);
                     wiadomosc.GetComponent<Text>().text = "Podana nazwa użytkownika jest już zajęta";
                     wiadomosc.SetActive(true);
                 }
