@@ -18,6 +18,7 @@ public class db : MonoBehaviour
     public CategoryList categoryList;
     public Quiz quiz;
     public List<string> lista = new List<string>();
+    public List<string> listaModyfikaji = new List<string>();
     private string conn, sqlQuery;
     IDbConnection dbconn;
     IDbCommand dbcmd;
@@ -64,7 +65,7 @@ public class db : MonoBehaviour
             menu.GetComponent<menu>().LoggedIn(uzytkownik);
             LogInScreen.SetActive(false);
         }
-        else if (nazwa.Contains(" ") || haslo.Contains(" ") || haslo.Contains(Char.ConvertFromUtf32(34)))
+        else if (nazwa.Contains(" ") || haslo.Contains(" ") || haslo.Contains(Char.ConvertFromUtf32(34)) || haslo.Contains("'") || haslo.Contains(Char.ConvertFromUtf32(39)))
         {
 
             wiadomosc.GetComponent<Text>().text = "Nazwa i hasło nie mogą zawierać spacji i znakow jak ' " + Char.ConvertFromUtf32(34);
@@ -87,7 +88,8 @@ public class db : MonoBehaviour
             lista = new List<string>();
             dbconn.Open(); //Open connection to the database.
             IDbCommand dbcmd = dbconn.CreateCommand();
-            string sqlQuery = "SELECT NazwaKategorii " + "FROM Kategorie";
+            //string sqlQuery = "SELECT NazwaKategorii " + "FROM Kategorie join pytanie";
+            string sqlQuery = "SELECT Distinct NazwaKategorii " + "FROM Kategorie join Pytania on Pytania.IdKategorii = Kategorie.Id group by Pytania.Pytanie having count(Pytania.Pytanie) > 0;";
             dbcmd.CommandText = sqlQuery;
             IDataReader reader = dbcmd.ExecuteReader();
             while (reader.Read())
@@ -119,7 +121,6 @@ public class db : MonoBehaviour
             int pop;
             dbconn.Open(); //Open connection to the database.
             IDbCommand dbcmd = dbconn.CreateCommand();
-            //string sqlQuery = "SELECT Pytanie, OdpowiedzA, OdpowiedzB, OdpowiedzC, OdpowiedzD, Poprawna, ObrazekPytania.URL FROM Kategorie INNER JOIN Pytania on Kategorie.Id = Pytania.IdKategorii left join ObrazekPytania on ObrazekPytania.IdPytania = Pytania.Id where Kategorie.NazwaKategorii = '" + category + "'";// table name
             string sqlQuery = "SELECT Pytanie, OdpowiedzA, OdpowiedzB, OdpowiedzC, OdpowiedzD, Poprawna, IFNULL(ObrazekPytania.URL,'NULL')  FROM Kategorie INNER JOIN Pytania on Kategorie.Id = Pytania.IdKategorii LEFT JOIN ObrazekPytania on Pytania.Id = ObrazekPytania.IdPytania where Kategorie.NazwaKategorii = " + "'" + category + "'";// table name
             dbcmd.CommandText = sqlQuery;
             IDataReader reader = dbcmd.ExecuteReader();
@@ -145,6 +146,65 @@ public class db : MonoBehaviour
 
         }
 
+    }
+
+    public void AllCategory()
+    {
+        using (dbconn = new SqliteConnection(conn))
+        {
+            int len = 0;
+            string NazwaKategorii;
+            listaModyfikaji = new List<string>();
+            dbconn.Open(); //Open connection to the database.
+            IDbCommand dbcmd = dbconn.CreateCommand();
+            //string sqlQuery = "SELECT NazwaKategorii " + "FROM Kategorie join pytanie";
+            string sqlQuery = "SELECT NazwaKategorii " + "FROM Kategorie;";
+            dbcmd.CommandText = sqlQuery;
+            IDataReader reader = dbcmd.ExecuteReader();
+            while (reader.Read())
+            {
+                len++;
+                NazwaKategorii = reader.GetString(0);
+
+                listaModyfikaji.Add(NazwaKategorii);
+
+            }
+            reader.Close();
+            reader = null;
+            dbcmd.Dispose();
+            dbcmd = null;
+            dbconn.Close();
+
+
+        }
+
+    }
+
+    public bool IsCategoryExist(string category)
+    {
+        using (dbconn = new SqliteConnection(conn))
+        {
+            int len = 0;
+            string NazwaKategorii;
+            dbconn.Open(); //Open connection to the database.
+            IDbCommand dbcmd = dbconn.CreateCommand();
+            //string sqlQuery = "SELECT NazwaKategorii " + "FROM Kategorie join pytanie";
+            string sqlQuery = "select NazwaKategorii from Kategorie where NazwaKategorii = '"+category+"'";
+            dbcmd.CommandText = sqlQuery;
+            IDataReader reader = dbcmd.ExecuteReader();
+            while (reader.Read())
+            {
+                return true;
+            }
+            reader.Close();
+            reader = null;
+            dbcmd.Dispose();
+            dbcmd = null;
+            dbconn.Close();
+
+
+        }
+        return false;
     }
 
     private string SignIn(string User, string Password)
@@ -252,7 +312,7 @@ public class db : MonoBehaviour
         wiadomosc.SetActive(true);
         string nazwa = Login.text;
         string haslo = Password.text;
-        if (nazwa.Contains(" ") || haslo.Contains(" ") || haslo.Contains(Char.ConvertFromUtf32(34)))
+        if (nazwa.Contains(" ") || haslo.Contains(" ") || haslo.Contains(Char.ConvertFromUtf32(34)) || haslo.Contains("'") || haslo.Contains(Char.ConvertFromUtf32(39)))
         {
             wiadomosc.GetComponent<Text>().text = "Nazwa i hasło nie mogą zawierać spacji i znakow jak ' " + Char.ConvertFromUtf32(34);
             wiadomosc.SetActive(true);

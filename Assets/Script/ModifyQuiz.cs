@@ -17,9 +17,10 @@ public class ModifyQuiz : MonoBehaviour
 
     public void Droplist()
     {
+        db.AllCategory();
         Kategorie.options.Clear();
         db.PlayButton();
-        foreach (var category in db.lista)
+        foreach (var category in db.listaModyfikaji)
         {
             Kategorie.options.Add(new Dropdown.OptionData() { text = category });
         }
@@ -59,7 +60,12 @@ public class ModifyQuiz : MonoBehaviour
     {
         string category;
         category = GetComponentInChildren<Text>().text;
-        if (category.Contains("'") || category.Contains(Char.ConvertFromUtf32(34)))
+        if(db.IsCategoryExist(category) == true)
+        {
+            categoryAlert.GetComponent<Text>().text = "Taka kategoria już istnieje";
+            categoryAlert.SetActive(true);
+        }
+        else if (category.Contains("'") || category.Contains(Char.ConvertFromUtf32(34)))
         {
             categoryAlert.GetComponent<Text>().text = "Pole nie może zawierać znaków takich jak: ' " + Char.ConvertFromUtf32(34);
             categoryAlert.SetActive(true);
